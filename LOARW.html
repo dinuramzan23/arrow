@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A Little Surprise</title>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #17121f;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    .scene {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse at 70% 60%, #49243c 0%, transparent 48%),
+        linear-gradient(145deg, #17121f, #24182b 55%, #17121f);
+      touch-action: none;
+      transition: background 1.2s ease;
+    }
+
+    .glow {
+      position: absolute;
+      width: 320px;
+      height: 320px;
+      left: 72%;
+      top: 55%;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      background: #ff7799;
+      filter: blur(100px);
+      opacity: .14;
+      pointer-events: none;
+    }
+
+    /* ഹൃദയം ആദ്യം ചെറുതായിരിക്കും */
+    .heart {
+      position: absolute;
+      left: 76%;
+      top: 48%;
+      width: 28px;
+      height: 28px;
+      transform: translate(-50%, -50%) rotate(-45deg) scale(.8);
+      background: #ff668c;
+      box-shadow: 0 0 24px #ff668c88;
+      transition: background .5s, box-shadow .5s;
+    }
+
+    .heart::before,
+    .heart::after {
+      content: "";
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: inherit;
+      transition: background .5s;
+    }
+
+    .heart::before { top: -14px; left: 0; }
+    .heart::after  { top: 0; left: 14px; }
+
+    /* അമ്പ് തട്ടിയാൽ ഹൃദയം വലുതായി വെളുക്കും */
+    .heart.hit {
+      animation: heartGrow 1.1s ease forwards;
+      background: #fff;
+      box-shadow: 0 0 35px #fff, 0 0 100px #fff;
+    }
+
+    @keyframes heartGrow {
+      0%   { transform: translate(-50%, -50%) rotate(-45deg) scale(.8); }
+      55%  { transform: translate(-50%, -50%) rotate(-45deg) scale(7); }
+      100% { transform: translate(-50%, -50%) rotate(-45deg) scale(5.5); }
+    }
+
+    /* മൂലയിലുള്ള വില്ല് */
+    .bow {
+      position: absolute;
+      left: 12%;
+      top: 76%;
+      width: 68px;
+      height: 126px;
+      transform: translate(-50%, -50%) rotate(-42deg);
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .bow-curve {
+      position: absolute;
+      inset: 0 8px 0 0;
+      border: 5px solid #e8b978;
+      border-left-color: transparent;
+      border-radius: 0 100% 100% 0;
+      filter: drop-shadow(0 0 9px #e8b97877);
+    }
+
+    .bow-string {
+      position: absolute;
+      top: 2px;
+      right: 8px;
+      height: 120px;
+      border-right: 1px solid #f5e5d2;
+    }
+
+    /* വില്ലിനടുത്തുള്ള വലിച്ചുവിടാവുന്ന അമ്പ് */
+    .arrow {
+      position: absolute;
+      left: 12%;
+      top: 76%;
+      width: 145px;
+      height: 12px;
+      z-index: 4;
+      transform: translate(0, -50%) rotate(-42deg);
+      transform-origin: 0 50%;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .arrow:active { cursor: grabbing; }
+
+    .shaft {
+      position: absolute;
+      left: 0;
+      right: 13px;
+      top: 5px;
+      height: 3px;
+      border-radius: 4px;
+      background: #f4dfbb;
+      box-shadow: 0 0 8px #ffe7bd77;
+    }
+
+    .tip {
+      position: absolute;
+      right: 0;
+      top: 1px;
+      width: 0;
+      height: 0;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      border-left: 14px solid #fff0d4;
+    }
+
+    .feather {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 16px;
+      height: 5px;
+      border-radius: 100% 0;
+      background: #e78aab;
+      transform: rotate(25deg);
+    }
+
+    .feather.two {
+      top: 7px;
+      transform: rotate(-25deg);
+    }
+
+    .hint {
+      position: absolute;
+      left: 7%;
+      bottom: 5%;
+      color: #d1b9c6;
+      font: 12px Arial, sans-serif;
+      letter-spacing: .08em;
+      pointer-events: none;
+    }
+
+    /* തട്ടിയതിന് ശേഷം മുഴുവൻ സ്ക്രീൻ വെളുക്കുന്നു */
+    .flash {
+      position: absolute;
+      inset: 0;
+      z-index: 8;
+      background: white;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .scene.reveal .flash {
+      animation: screenFlash 1.1s ease forwards;
+    }
+
+    @keyframes screenFlash {
+      0%   { opacity: 0; }
+      25%  { opacity: 1; }
+      60%  { opacity: 1; }
+      100% { opacity: 1; }
+    }
+
+    .final-message {
+      position: absolute;
+      z-index: 9;
+      inset: 0;
+      display: grid;
+      place-content: center;
+      text-align: center;
+      color: #48263b;
+      background: #fffafc;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 1s ease;
+    }
+
+    .final-message h1 {
+      margin: 0;
+      font-size: clamp(44px, 10vw, 90px);
+      font-weight: 400;
+    }
+
+    .final-message p {
+      margin: 18px 0 0;
+      color: #9b637b;
+      font: 15px Arial, sans-serif;
+      letter-spacing: .12em;
+    }
+
+    .scene.reveal .final-message {
+      visibility: visible;
+      animation: messageIn 1s ease 1s forwards;
+    }
+
+    @keyframes messageIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    .scene.reveal .arrow,
+    .scene.reveal .bow,
+    .scene.reveal .hint,
+    .scene.reveal .glow {
+      opacity: 0;
+      transition: opacity .35s;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="scene" id="scene">
+    <div class="glow"></div>
+
+    <div class="heart" id="heart"></div>
+
+    <div class="bow">
+      <div class="bow-curve"></div>
+      <div class="bow-string" id="bowString"></div>
+    </div>
+
+    <div class="arrow" id="arrow" aria-label="Drag and release the arrow">
+      <div class="shaft"></div>
+      <div class="tip"></div>
+      <div class="feather"></div>
+      <div class="feather two"></div>
+    </div>
+
+    <div class="hint" id="hint">Drag the arrow toward the heart and release</div>
+
+    <div class="flash"></div>
+
+    <section class="final-message">
+      <div>
+        <h1>I love you</h1>
+        <p>you make my world softer ♡</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const scene = document.getElementById("scene");
+    const arrow = document.getElementById("arrow");
+    const heart = document.getElementById("heart");
+    const hint = document.getElementById("hint");
+    const bowString = document.getElementById("bowString");
+
+    let dragging = false;
+    let startPointer = null;
+    let startArrow = null;
+    let used = false;
+
+    function scenePoint(event) {
+      const rect = scene.getBoundingClientRect();
+      return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+      };
+    }
+
+    arrow.addEventListener("pointerdown", event => {
+      if (used) return;
+
+      dragging = true;
+      arrow.setPointerCapture(event.pointerId);
+
+      const p = scenePoint(event);
+      const rect = scene.getBoundingClientRect();
+
+      startPointer = p;
+      startArrow = {
+        x: rect.width * 0.12,
+        y: rect.height * 0.76
+      };
+
+      arrow.style.transition = "none";
+    });
+
+    arrow.addEventListener("pointermove", event => {
+      if (!dragging) return;
+
+      const p = scenePoint(event);
+      const rect = scene.getBoundingClientRect();
+
+      // വലിച്ച ദിശയിൽ അമ്പിനെ നീക്കുക; വില്ലിൽ നിന്ന് അധികം അകറ്റാതെ പിടിക്കും.
+      const dx = p.x - startPointer.x;
+      const dy = p.y - startPointer.y;
+      const x = Math.max(3, Math.min(72, (startArrow.x + dx) / rect.width * 100));
+      const y = Math.max(10, Math.min(92, (startArrow.y + dy) / rect.height * 100));
+
+      arrow.style.left = x + "%";
+      arrow.style.top = y + "%";
+
+      // അമ്പിന്റെ മുഖം ഹൃദയത്തിന്റെ ദിശയിലേക്ക് തിരിക്കുക.
+      const heartRect = heart.getBoundingClientRect();
+      const hx = heartRect.left + heartRect.width / 2;
+      const hy = heartRect.top + heartRect.height / 2;
+      const arrowX = rect.left + (x / 100) * rect.width;
+      const arrowY = rect.top + (y / 100) * rect.height;
+      const angle = Math.atan2(hy - arrowY, hx - arrowX) * 180 / Math.PI;
+
+      arrow.style.transform = `translate(0, -50%) rotate(${angle}deg)`;
+      bowString.style.transform = `scaleY(${1 + Math.min(Math.abs(dx), 50) / 70})`;
+    });
+
+    arrow.addEventListener("pointerup", () => {
+      if (!dragging) return;
+      dragging = false;
+
+      const heartRect = heart.getBoundingClientRect();
+      const sceneRect = scene.getBoundingClientRect();
+      const targetX = heartRect.left + heartRect.width / 2;
+      const targetY = heartRect.top + heartRect.height / 2;
+      const startX = sceneRect.left + sceneRect.width * 0.12;
+      const startY = sceneRect.top + sceneRect.height * 0.76;
+
+      const angle = Math.atan2(targetY - startY, targetX - startX);
+      const distance = Math.hypot(targetX - startX, targetY - startY);
+
+      // അമ്പ് വിട്ടാൽ അത് හൃദയത്തിലേക്ക് പറക്കും.
+      arrow.style.transition = "left .75s ease-in, top .75s ease-in, transform .75s ease-in";
+      arrow.style.left = `${(startX - sceneRect.left + Math.cos(angle) * distance) / sceneRect.width * 100}%`;
+      arrow.style.top = `${(startY - sceneRect.top + Math.sin(angle) * distance) / sceneRect.height * 100}%`;
+      arrow.style.transform = `translate(0, -50%) rotate(${angle * 180 / Math.PI}deg)`;
+
+      used = true;
+      hint.textContent = "";
+
+      setTimeout(() => {
+        heart.classList.add("hit");
+        scene.classList.add("reveal");
+      }, 750);
+    });
+
+    arrow.addEventListener("pointercancel", () => {
+      dragging = false;
+    });
+  </script>
+</body>
+</html>
